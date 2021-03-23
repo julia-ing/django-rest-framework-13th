@@ -35,3 +35,14 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+
+class Comment(models.Model):
+    commenter = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    root = models.ForeignKey('self', null=True, related_name='rootcomment', on_delete=models.CASCADE)
+    text = models.TextField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '{} : {}'.format(self.commenter, self.text)
