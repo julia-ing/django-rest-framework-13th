@@ -46,3 +46,21 @@ class Comment(models.Model):
 
     def __str__(self):
         return '{} : {}'.format(self.commenter, self.text)
+
+
+class Follow(models.Model):
+    follower = models.ForeignKey(Profile, related_name='follower', on_delete=models.CASCADE)
+    following = models.ForeignKey(Profile, related_name='following', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '{} -> {}'.format(self.follower, self.following)
+
+
+class Like(models.Model):
+    liker = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    liked_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return '{} -> {}'.format(self.liker, self.post)
+
