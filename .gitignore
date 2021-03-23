@@ -1,4 +1,5 @@
 .idea/
+/secrets.json
 
 # Created by https://www.toptal.com/developers/gitignore/api/windows,python,pycharm,django
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,python,pycharm,django
