@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from taggit.managers import TaggableManager
 
 
 class Profile(models.Model):
@@ -17,23 +18,29 @@ class Profile(models.Model):
 class Post(models.Model):
     writer = models.ForeignKey(Profile, on_delete=models.CASCADE)
     image = models.FileField(upload_to="image")
-    tags = models.ManyToManyField('Tag', verbose_name='해시태그 목록', related_name='posts', blank=True)
+    # tags = models.ManyToManyField('Tag', verbose_name='해시태그 목록', related_name='posts', blank=True)
+    tags = TaggableManager(blank=True)
     text = models.TextField(null=True)
+    # like_user = models.ManyToManyField(Profile, related_name='likes', blank=True)
+    # like_cnt = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '{} : {}'.format(self.writer, self.text)
 
+    def like_count(self):        # db에서 디폴트 0으로 지정해줌
+        return self.like_set.count()
+
     class Meta:
         ordering = ['-created_at']
 
 
-class Tag(models.Model):
-    name = models.CharField('태그명', max_length=100)
-
-    def __str__(self):
-        return self.name
+# class Tag(models.Model):
+#     name = models.CharField('태그명', max_length=100)
+#
+#     def __str__(self):
+#         return self.name
 
 
 class Comment(models.Model):
