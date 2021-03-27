@@ -23,7 +23,7 @@ class Profile(models.Model):
     phone = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return '{} / {}'.format(self.user.username, self.nickname)
+        return self.nickname
 ```
 1. 사용자 프로필 사진 : 이미지필드를 사용해봤습니다. 물론 모델링만 하는 과제였지만 잘 작동하는지 눈으로 확인해보고 싶어서
 Pillow를 임포트해준 뒤 media/image 디렉토리를 생성하고 settings, urls를 수정해주는 작업을 했습니다. (admin.py에 등록해서 확인해봄)
@@ -47,17 +47,20 @@ from taggit.managers import TaggableManager  # taggit 사용
 class Post(models.Model):
     writer = models.ForeignKey(Profile, on_delete=models.CASCADE)
     image = models.FileField(upload_to="image")
-    # tags = models.ManyToManyField('Tag', verbose_name='해시태그', related_name='posts', blank=True)
     tags = TaggableManager(blank=True)
     text = models.TextField(null=True)
+    like_users = models.ManyToManyField(
+        'Profile',
+        through='Like',
+        related_name='like_posts'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '{} : {}'.format(self.writer, self.text)
 
-    def like_count(self):        # migrate 시 문제 발생 -> db에서 디폴트 0으로 지정해줌
-        return self.like_set.count()
+    def like_count(self):  
+        return self.like_users.all().count()
 
     class Meta:
         ordering = ['-created_at']  # 최신순으로 정렬
@@ -67,7 +70,7 @@ class Post(models.Model):
 2. 해시태그 : manytomany -> [taggit](https://django-taggit.readthedocs.io/en/latest/getting_started.html) ... 
    이것도 마찬가지로 settings.py에 추가해주었고, 나중에 실제로 views나 urls 작성할 때 사용방법이 따로 있는 것 같아 살펴보는 중입니다. 
    
-3. like_count : migrate 시 문제가 생겨 mysql에서 default값을 0으로 직접 지정
+3. like_users : manytomany 연결, 한 게시물에 여러 개의 좋아요 / 한 사람이 여러 게시물에 좋아요
 
 - Comment
 ```python
@@ -77,7 +80,6 @@ class Comment(models.Model):
     root = models.ForeignKey('self', null=True, related_name='rootcomment', on_delete=models.CASCADE)  # 대댓글 기능
     text = models.TextField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '{} : {}'.format(self.commenter, self.text)
@@ -97,11 +99,18 @@ class Follow(models.Model):
 ```python
 class Like(models.Model):
     liker = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name='like_posts', on_delete=models.CASCADE)
     liked_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return '{} -> {}'.format(self.liker, self.post)
+```
+
+- File (피드백 반영 후 - 한 게시물에 여러 사진,영상이 올라갈 수 있으므로)
+```python
+class File(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    file = models.FileField(upload_to="image")
 ```
 ---
 
@@ -136,6 +145,8 @@ class Like(models.Model):
 
 ## 간단한 회고
 1. ERD를 이번에 마음대로 짜봤다가 고생함. 다음부터는 처음부터 꼼꼼하게 열심히 짜야겠다.
-2. tag를 mannytomany로 바꿀까? follow를 profile 필드로 넣어버릴까? like-post 다대다?
-3. 결론 : 모델링 너무 어렵다ㅜㅜ 피드백 많이 해주세요..😭💪
+2. tag를 mannytomany로 바꿀까? follow를 profile 필드로 넣어버릴까?
+3. 이번 과제를 하며, 정돈되지 않았지만 여러 생각들을 많이 해본 것 같다. 
+   다 하고 나니 뭔가 큰 일을 해낸 것 같은 기분이고, 모델링이 굉장히 중요한 작업이라는 것을 깨달았다.
+4. 결론 : 모델링 너무 어렵다ㅜㅜ 아직 많이 부족한 것 같고, 더 열심히 노력해야겠다!!
 
