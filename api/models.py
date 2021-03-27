@@ -12,35 +12,35 @@ class Profile(models.Model):
     phone = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return '{} / {}'.format(self.user.username, self.nickname)
+        return self.nickname
 
 
 class Post(models.Model):
-    writer = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    image = models.FileField(upload_to="image")
-    # tags = models.ManyToManyField('Tag', verbose_name='해시태그 목록', related_name='posts', blank=True)
+    writer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='writer')
     tags = TaggableManager(blank=True)
+    location = models.CharField(max_length=100, null=True, blank=True)
+    can_comment = models.BooleanField(default=True)
     text = models.TextField(null=True)
-    # like_user = models.ManyToManyField(Profile, related_name='likes', blank=True)
-    # like_cnt = models.PositiveIntegerField(default=0)
+    like_users = models.ManyToManyField(
+        'Profile',
+        through='Like',
+        related_name='like_posts'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '{} : {}'.format(self.writer, self.text)
 
-    def like_count(self):        # db에서 디폴트 0으로 지정해줌
-        return self.like_set.count()
+    def like_count(self):
+        return self.like_users.all().count()
 
     class Meta:
         ordering = ['-created_at']
 
 
-# class Tag(models.Model):
-#     name = models.CharField('태그명', max_length=100)
-#
-#     def __str__(self):
-#         return self.name
+class File(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    file = models.FileField(upload_to="image")
 
 
 class Comment(models.Model):
@@ -49,7 +49,6 @@ class Comment(models.Model):
     root = models.ForeignKey('self', null=True, related_name='rootcomment', on_delete=models.CASCADE)
     text = models.TextField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '{} : {}'.format(self.commenter, self.text)
@@ -65,9 +64,8 @@ class Follow(models.Model):
 
 class Like(models.Model):
     liker = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, related_name='like_posts', on_delete=models.CASCADE)
     liked_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return '{} -> {}'.format(self.liker, self.post)
-
