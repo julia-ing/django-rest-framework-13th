@@ -27,18 +27,6 @@ class Profile(models.Model):
 ```
 1. 사용자 프로필 사진 : 이미지필드를 사용해봤습니다. 물론 모델링만 하는 과제였지만 잘 작동하는지 눈으로 확인해보고 싶어서
 Pillow를 임포트해준 뒤 media/image 디렉토리를 생성하고 settings, urls를 수정해주는 작업을 했습니다. (admin.py에 등록해서 확인해봄)
-```python
-# config/settings.py
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-#config/urls.py
-from django.conf import settings
-from django.conf.urls.static import static
-urlpatterns = [
-    path('admin/', admin.site.urls),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-```
 
 - Post
 ```python
@@ -46,8 +34,8 @@ from taggit.managers import TaggableManager  # taggit 사용
 
 class Post(models.Model):
     writer = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    image = models.FileField(upload_to="image")
     tags = TaggableManager(blank=True)
+    can_comment = models.BooleanField(default=True)  # 댓글 허용 / 차단
     text = models.TextField(null=True)
     like_users = models.ManyToManyField(
         'Profile',
@@ -87,7 +75,7 @@ class Comment(models.Model):
 
 - Follow
 ```python
-class Follow(models.Model):
+class Follow(models.Model):  # 중요 기능은 아닌 것 같지만 가장 헷갈렸던 부분 중 하나
     follower = models.ForeignKey(Profile, related_name='follower', on_delete=models.CASCADE)
     following = models.ForeignKey(Profile, related_name='following', on_delete=models.CASCADE)
 
@@ -97,7 +85,7 @@ class Follow(models.Model):
 
 - Like
 ```python
-class Like(models.Model):
+class Like(models.Model):  # 중개 모델
     liker = models.ForeignKey(Profile, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, related_name='like_posts', on_delete=models.CASCADE)
     liked_at = models.DateTimeField(auto_now_add=True)
@@ -110,7 +98,7 @@ class Like(models.Model):
 ```python
 class File(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-    file = models.FileField(upload_to="image")
+    file = models.FileField(upload_to="image")  # 영상일 수도 있으므로 파일필드 이용
 ```
 ---
 
@@ -122,23 +110,23 @@ class File(models.Model):
 >>> Profile.objects.create(user_id=3, nickname='julia-ing', bio='세오스 사랑해요')  # admin에서 한번 생성 후 지웠더니 id값이 3이 됨
 
 >>> Post.objects.create(writer=test_user2, text='우와 이게 되네요ㅎㅎ') # test_user2에 최예원 저장
-<Post: 최예원 / julia-ing : 우와 이게 되네요ㅎㅎ>
+<Post: julia-ing : 우와 이게 되네요ㅎㅎ>
 >>> Post.objects.create(writer=test_user, text='푸쳐핸섭푸푸푸푸풋') # test_user에 yewon 저장
-<Post: yewon / yew0n_derful : 푸쳐핸섭푸푸푸푸풋>
+<Post: yew0n_derful : 푸쳐핸섭푸푸푸푸풋>
 
 >>> Comment.objects.create(commenter=test_user, post=test_post, text='great')
-<Comment: yewon / yew0n_derful : great>
+<Comment: yew0n_derful : great>
 >>> Comment.objects.create(commenter=test_user, post=test_post2, text='amazing')
-<Comment: yewon / yew0n_derful : amazing>
+<Comment: yew0n_derful : amazing>
 >>> Comment.objects.create(commenter=test_user2, post=test_post, text='excellent')
-<Comment: 최예원 / julia-ing : excellent>
+<Comment: julia-ing : excellent>
 >>> Comment.objects.create(commenter=test_user2, post=test_post2, text='perfect')
-<Comment: 최예원 / julia-ing : perfect>
+<Comment: julia-ing : perfect>
 
 >>> Comment.objects.filter(commenter=test_user2)
-<QuerySet [<Comment: 최예원 / julia-ing : excellent>, <Comment: 최예원 / julia-ing : perfect>]>
+<QuerySet [<Comment: julia-ing : excellent>, <Comment: julia-ing : perfect>]>
 >>> Comment.objects.filter(post=test_post)
-<QuerySet [<Comment: yewon / yew0n_derful : great>, <Comment: 최예원 / julia-ing : excellent>]>  # 지저분해서 손봐야될 것 같음.
+<QuerySet [<Comment: yew0n_derful : great>, <Comment: julia-ing : excellent>]>  
 ```
 
 ---
