@@ -12,7 +12,7 @@ class Base(models.Model):
 
 
 class Profile(Base):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     nickname = models.CharField(max_length=50, unique=True)
     avatar = models.ImageField(upload_to="image", default='image/default_img.jpg')
     website = models.URLField(null=True, blank=True)
@@ -24,7 +24,7 @@ class Profile(Base):
 
 
 class Post(Base):
-    writer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='writer')
+    writer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='posts')
     tags = TaggableManager(blank=True)
     location = models.CharField(max_length=100, null=True, blank=True)
     can_comment = models.BooleanField(default=True)
@@ -38,14 +38,14 @@ class Post(Base):
 
 
 class File(Base):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='files')
     file = models.FileField(upload_to="image")
 
 
 class Comment(Base):
-    commenter = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
-    root = models.ForeignKey('self', null=True, related_name='rootcomment', on_delete=models.CASCADE, blank=True)
+    commenter = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='comments')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_comments')
+    root = models.ForeignKey('self', null=True, related_name='root_comment', on_delete=models.CASCADE, blank=True)
     text = models.TextField(max_length=500)
 
     def __str__(self):
@@ -61,8 +61,8 @@ class Follow(Base):
 
 
 class Like(Base):
-    liker = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)
+    liker = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='likes')
+    post = models.ForeignKey(Post, related_name='post_likes', on_delete=models.CASCADE)
 
     def __str__(self):
         return '{} -> {}'.format(self.liker, self.post)
