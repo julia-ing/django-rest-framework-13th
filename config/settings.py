@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'taggit',
+    'taggit_serializer',
     'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',

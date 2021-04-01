@@ -19,6 +19,18 @@ class Profile(Base):
     bio = models.TextField(blank=True)
     phone = models.CharField(max_length=50, null=True, blank=True)
 
+    def realname(self):
+        return self.user.username
+
+    def follower_count(self):
+        return self.following.values().count()
+
+    def following_count(self):
+        return self.follower.values().count()
+
+    def post_count(self):
+        return self.posts.values().count()
+
     def __str__(self):
         return self.nickname
 
@@ -32,6 +44,12 @@ class Post(Base):
 
     def __str__(self):
         return '{} : {}'.format(self.writer, self.text)
+
+    def like_count(self):
+        return self.post_likes.values().count()
+
+    def comment_count(self):
+        return self.post_comments.values().count()
 
     class Meta:
         ordering = ['-created_at']
