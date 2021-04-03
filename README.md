@@ -173,7 +173,7 @@ class Comment(Base):
     def __str__(self):
         return '{} : {}'.format(self.commenter, self.text)
 ```
-![img.png](media/image/img.png)
+![img](https://user-images.githubusercontent.com/77239220/113486360-3ad30500-94ed-11eb-916d-e6e29204fb17.png)
 
 ### 모든 list를 가져오는 API
 - URL: api/posts/
