@@ -1,16 +1,15 @@
 # CEOS 13기 백엔드 스터디 최예원
-## REST API 서버 개발
-### 인스타그램 클론
+## REST API 서버 개발 - 인스타그램 클론
 
 ---
 
-## 모델 설명
-### ERD 만들기
+### 모델 설명
+#### ERD 만들기
 - ERD를 처음 만들어봤는데 쉽지 않았습니다. 구조를 잡아놓고 모델링을 시작했는데 
   제가 짠 ERD가 탄탄하지 않았는지 코드 작성하면서 관계를 바꾼 부분이 꽤 있었습니다ㅎㅎ 
 
 ![erd](./media/image/instagram_erd.PNG)
-### 모델 - Profile, Post, Comment, Follow, Like
+#### 모델 - Profile, Post, Comment, Follow, Like
 
 - Profile
 ```python
@@ -131,10 +130,201 @@ class File(models.Model):
 
 ---
 
-## 간단한 회고
+### 간단한 회고
 1. ERD를 이번에 마음대로 짜봤다가 고생함. 다음부터는 처음부터 꼼꼼하게 열심히 짜야겠다.
 2. tag를 mannytomany로 바꿀까? follow를 profile 필드로 넣어버릴까?
 3. 이번 과제를 하며, 정돈되지 않았지만 여러 생각들을 많이 해본 것 같다. 
    다 하고 나니 뭔가 큰 일을 해낸 것 같은 기분이고, 모델링이 굉장히 중요한 작업이라는 것을 깨달았다.
 4. 결론 : 모델링 너무 어렵다ㅜㅜ 아직 많이 부족한 것 같고, 더 열심히 노력해야겠다!!
 
+---
+
+---
+
+## 3주차 과제 (기한: 4/1 목요일까지)
+### 모델 선택 및 데이터 삽입
+```python
+class Post(Base):
+    writer = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='posts')
+    tags = TaggableManager(blank=True)
+    location = models.CharField(max_length=100, null=True, blank=True)
+    can_comment = models.BooleanField(default=True)
+    text = models.TextField(null=True)
+
+    def __str__(self):
+        return '{} : {}'.format(self.writer, self.text)
+
+    def like_count(self):
+        return self.post_likes.values().count()
+
+    def comment_count(self):
+        return self.post_comments.values().count()  # 카운트 메소드는 admin.py에서 확인하고 싶어서 넣어봤습니다.
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class Comment(Base):
+    commenter = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='comments')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_comments')
+    root = models.ForeignKey('self', null=True, related_name='root_comment', on_delete=models.CASCADE, blank=True)
+    text = models.TextField(max_length=500)
+
+    def __str__(self):
+        return '{} : {}'.format(self.commenter, self.text)
+```
+![img.png](media/image/img.png)
+
+### 모든 list를 가져오는 API
+- URL: api/posts/
+- Method: GET
+```json
+[
+    {
+        "id": 3,
+        "writer_nickname": "jay_jhyunl",
+        "writer": 3,
+        "tags": [
+            "맛집",
+            "롯데월드몰"
+        ],
+        "text": "랍스타 무한리필",
+        "location": "viking's wharf",
+        "files": [
+            3
+        ],
+        "can_comment": true,
+        "post_comments": [],
+        "post_likes": [
+            {
+                "liker": 2,
+                "post": 3
+            },
+            {
+                "liker": 1,
+                "post": 3
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "writer_nickname": "in_young912",
+        "writer": 2,
+        "tags": [
+            "맛집"
+        ],
+        "text": "가로수길 새들러하우스 크로플 JMT",
+        "location": "Saddler House",
+        "files": [],
+        "can_comment": true,
+        "post_comments": [
+            {
+                "id": 1,
+                "commenter": 1,
+                "text": "근데 여기 웨이팅이 너무 길어 엉엉",
+                "root": null
+            },
+            {
+                "id": 2,
+                "commenter": 2,
+                "text": "그래두 기다려서라도 먹어봐야 하는 맛",
+                "root": 1
+            }
+        ],
+        "post_likes": []
+    },
+    {
+        "id": 1,
+        "writer_nickname": "yew0n_derful",
+        "writer": 1,
+        "tags": [
+            "ceos"
+        ],
+        "text": "세오스 3주차 미션중",
+        "location": "Seoul",
+        "files": [
+            1,
+            2
+        ],
+        "can_comment": true,
+        "post_comments": [
+            {
+                "id": 3,
+                "commenter": 3,
+                "text": "화이팅!!",
+                "root": null
+            }
+        ],
+        "post_likes": [
+            {
+                "liker": 3,
+                "post": 1
+            }
+        ]
+    }
+]
+```
+files는 nested로 하면 너무 정신없어 보이길래 필드로만 전달해줬습니다.
+추가적으로, 특정 id 값을 갖는 게시물만 불러와보는 걸 해봤습니다. 
+
+- URL: api/posts/1
+- Method: GET
+```python
+# api/urls.py
+path('posts/<int:pk>', views.get_one_post)
+
+#api/views.py
+@csrf_exempt
+def get_one_post(request, pk):  # 특정 id 값을 갖는 게시물만 보여줌
+    if request.method == 'GET':
+        posts = Post.objects.filter(id=pk)  # get으로 하면 안됨: not iterable 에러, filter 써야 queryset 반환
+        serializer = PostSerializer(posts, many=True)
+        return JsonResponse(serializer.data, safe=False)
+```
+
+### 새로운 데이터를 create하도록 요청하는 API
+- URL: api/posts/
+- Method: POST
+- Body: 
+```json
+{
+    "id": 4,
+    "writer_nickname": "yew0n_derful",
+    "writer": 1,
+    "tags": [
+            "ceos",
+            "django"
+        ],
+    "text": "포스트 요청 테스트 중입니다~",
+    "location": "합정역 할리스",
+    "files": [],
+    "can_comment": true,
+    "post_comments": [],
+    "post_likes": []
+}
+```
+
+### 공부한 내용 정리
+1. Serializers - JSON형식의 데이터를 주고 받기 위해 모델 인스턴스를 직렬화, 인코딩 느낌
+2. admin list_display - 
+
+```text
+list_display = ['id', 'writer', 'text', 'tag_list', 'like_count', 'comment_count']
+```
+
+   
+3. postman에서 요청 보낼 때 get 을 제외한 요청들은 url 끝에 /가 있어야 함 (데이터 손실 가능성 때문..?)
+
+4. id 대신 nickname을 보고 싶을때 (근데 이때 필드에 writer은 꼭 입력해주어야 post 가능)- 
+```python
+class PostSerializer(serializers.ModelSerializer):
+    writer_nickname = serializers.SerializerMethodField()
+    ~~~
+    def get_writer_nickname(self, obj):
+        return obj.writer.nickname
+```
+   
+5. postman에서 post로 게시물 생성할 때 혹시나혹시나 likes까지 동시에 같이 생성할 수 있나 해봤는데 역시 안됐다...
+
+### 간단한 회고
+1. 재밌었다!! 모델링에 비해 수월하게 끝낸 것 같아 기분이 좋다ㅜㅜ 

@@ -22,3 +22,12 @@ def post_list(request):
             serializer.save()
             return JsonResponse(serializer.data, status=201)
         return JsonResponse(serializer.errors, status=400)
+
+
+@csrf_exempt
+def get_one_post(request, pk):  # 특정 id 값을 갖는 게시물만 보여줌
+    if request.method == 'GET':
+        posts = Post.objects.filter(id=pk)  # get으로 하면 안됨: not iterable 에러, filter 써야 queryset 반환
+        serializer = PostSerializer(posts, many=True)
+        return JsonResponse(serializer.data, safe=False)
+

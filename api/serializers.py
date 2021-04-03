@@ -17,9 +17,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class LikeSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Like
-        fields = ['liker']
+        fields = ['liker', 'post']
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -30,14 +31,18 @@ class FollowSerializer(serializers.ModelSerializer):
 
 class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
     # files = FileSerializer(many=True, read_only=True)
+    writer_nickname = serializers.SerializerMethodField()
     post_comments = CommentSerializer(many=True, read_only=True)
     post_likes = LikeSerializer(many=True, read_only=True)
     tags = TagListSerializerField()
 
     class Meta:
         model = Post
-        fields = ['id', 'writer', 'tags', 'text', 'location', 'files',
+        fields = ['id', 'writer_nickname', 'writer', 'tags', 'text', 'location', 'files',
                   'can_comment', 'post_comments', 'post_likes']
+
+    def get_writer_nickname(self, obj):
+        return obj.writer.nickname
 
 
 class ProfileSerializer(serializers.ModelSerializer):

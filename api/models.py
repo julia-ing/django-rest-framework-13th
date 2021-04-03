@@ -23,10 +23,10 @@ class Profile(Base):
         return self.user.username
 
     def follower_count(self):
-        return self.following.values().count()
+        return self.follower.values().count()
 
     def following_count(self):
-        return self.follower.values().count()
+        return self.following.values().count()
 
     def post_count(self):
         return self.posts.values().count()
@@ -71,8 +71,8 @@ class Comment(Base):
 
 
 class Follow(Base):
-    follower = models.ForeignKey(Profile, related_name='follower', on_delete=models.CASCADE)
-    following = models.ForeignKey(Profile, related_name='following', on_delete=models.CASCADE)
+    follower = models.ForeignKey(Profile, related_name='following', on_delete=models.CASCADE)
+    following = models.ForeignKey(Profile, related_name='follower', on_delete=models.CASCADE)
 
     def __str__(self):
         return '{} -> {}'.format(self.follower, self.following)
