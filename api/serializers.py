@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import User, Profile, Post, File, Comment, Like, Follow
+from api.models import Profile, Post, File, Comment, Like, Follow
 from taggit_serializer.serializers import (TagListSerializerField, TaggitSerializer)
 
 
@@ -46,7 +46,7 @@ class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
+    # user = serializers.StringRelatedField(read_only=True)
     # posts = PostSerializer(many=True, read_only=True)
     # comments = CommentSerializer(many=True, read_only=True)
     follower = FollowSerializer(many=True, read_only=True)
