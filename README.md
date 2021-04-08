@@ -173,7 +173,7 @@ class Comment(Base):
     def __str__(self):
         return '{} : {}'.format(self.commenter, self.text)
 ```
-![img.png](media/image/img.png)
+![img](https://user-images.githubusercontent.com/77239220/113486360-3ad30500-94ed-11eb-916d-e6e29204fb17.png)
 
 ### 모든 list를 가져오는 API
 - URL: api/posts/
@@ -328,6 +328,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 ### 간단한 회고
 1. 재밌었다!! 모델링에 비해 수월하게 끝낸 것 같아 기분이 좋다ㅜㅜ 
+<<<<<<< HEAD
 
 ---
 ---
@@ -469,4 +470,4 @@ class PostSerializer(serializers.ModelSerializer):
 ### 간단한 회고
 CRUD가 간단하게 구현되는 걸 보고 신기했다. 
 이전 프로젝트들 진행할 때는 FBV만 사용해봤었는데 CBV도 알게 되어 좋았고, 특히 장고 DRF가 제공하는 APIView를 써보니 굉장히 편리했다.
-REST api에 대해 더 공부해야겠다. 
+REST api에 대해 더 공부해야겠다.
