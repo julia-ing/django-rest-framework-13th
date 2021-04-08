@@ -46,21 +46,13 @@ class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
     # posts = PostSerializer(many=True, read_only=True)
     # comments = CommentSerializer(many=True, read_only=True)
-    # follower = FollowSerializer(many=True, read_only=True)
-    # following = FollowSerializer(many=True, read_only=True)
-    # likes = LikeSerializer(many=True, read_only=True)
+    follower = FollowSerializer(many=True, read_only=True)
+    following = FollowSerializer(many=True, read_only=True)
+    likes = LikeSerializer(many=True, read_only=True)
 
     class Meta:
         model = Profile
-        fields = ['user', 'nickname', 'website', 'bio', 'phone']
-
-
-class UserSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'profile']
-
+        fields = ['user', 'nickname', 'website', 'bio', 'follower', 'following', 'likes']
