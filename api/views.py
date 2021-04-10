@@ -1,3 +1,4 @@
+from django.http import Http404
 from api.models import Profile, Post
 from api.serializers import ProfileSerializer, PostSerializer
 from rest_framework.views import APIView
@@ -47,13 +48,19 @@ class ProfileList(APIView):
 
 
 class ProfileDetail(APIView):
+    def get_object(self, pk):
+        try:
+            return Post.objects.get(pk=pk)
+        except Profile.DoesNotExist:
+            raise Http404
+
     def get(self, request, pk, format=None):
-        profile = Profile.objects.get(pk=pk)
+        profile = self.get_object(pk)
         serializer = ProfileSerializer(profile)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
-        profile = Profile.objects.get(pk=pk)
+        profile = self.get_object(pk)
         serializer = ProfileSerializer(profile, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -61,7 +68,7 @@ class ProfileDetail(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
-        profile = Profile.objects.get(pk=pk)
+        profile = self.get_object(pk)
         profile.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -81,13 +88,19 @@ class PostList(APIView):
 
 
 class PostDetail(APIView):
+    def get_object(self, pk):
+        try:
+            return Post.objects.get(pk=pk)
+        except Post.DoesNotExist:
+            raise Http404
+
     def get(self, request, pk, format=None):
-        post = Post.objects.get(pk=pk)
+        post = self.get_object(pk)
         serializer = PostSerializer(post)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
-        post = Post.objects.get(pk=pk)
+        post = self.get_object(pk)
         serializer = PostSerializer(post, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -95,7 +108,7 @@ class PostDetail(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
-        lecture = Post.objects.get(pk=pk)
-        lecture.delete()
+        post = self.get_object(pk)
+        post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
