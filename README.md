@@ -458,6 +458,20 @@ class PostSerializer(serializers.ModelSerializer):
 <img width="639" alt="user_delete" src="https://user-images.githubusercontent.com/77239220/113993651-a4f1fe00-988f-11eb-8d09-29bf375a102c.PNG">
 
 ### 공부한 내용 정리
+- 코드리뷰를 하며 알게된 것들
+  1. get_object 함수 정의 (객체가 존재하지 않으면 에러 발생시키기 위해)
+     - 데이터를 요청하기 전에 존재유무를 먼저 파악할 수 있고 + 나중에 객체를 불러올 때 코드도 깔끔해짐
+        ```python
+            def get_object(self, pk):
+                try:
+                    return Post.objects.get(pk=pk)
+                except Profile.DoesNotExist:
+                    raise Http404
+        ```
+   2. format=None / 
+       urlpatterns = format_suffix_patterns(urlpatterns, allowed=['json', 'html'])
+       - localhost:8000/api/users.json 과 같이 포맷 접미사 표현 가능
+
 - Post, Get, Put, Delete
 - FBV와 CBV
 
@@ -465,7 +479,6 @@ class PostSerializer(serializers.ModelSerializer):
 |---|---|---|
 |선언|@api_view|APIView|
 |메소드|데코레이터 안, if문|클래스 내에 함수 정의|
-- format=None / urlpatterns = format_suffix_patterns(urlpatterns)
 
 ### 간단한 회고
 CRUD가 간단하게 구현되는 걸 보고 신기했다. 
