@@ -5,16 +5,22 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
+from django_filters import rest_framework as filters
+from api.filters import PostFilter, ProfileFilter
 
 
 class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = PostFilter
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ProfileFilter
 
 
 # FBV

@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django_filters',
     'api.apps.ApiConfig',
     'taggit',
     'taggit_serializer',
@@ -126,3 +127,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 TAGGIT_CASE_INSENSITIVE = True
 TAGGIT_LIMIT = 50
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+}
