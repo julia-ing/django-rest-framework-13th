@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from api.filters import PostFilter, ProfileFilter
+from api.permissions import *
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -14,6 +15,7 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = PostFilter
+    permission_classes = (IsWriterOrReadonly,)
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -21,6 +23,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = ProfileFilter
+    permission_classes = (ProfileUpdatePermission,)
 
 
 # FBV
