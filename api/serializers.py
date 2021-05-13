@@ -28,6 +28,12 @@ class FollowSerializer(serializers.ModelSerializer):
         model = Follow
         fields = ['follower', 'following']
 
+# serializer 내의 validation 동작 방식 아직 잘 이해 못함 - 더 공부해보기
+    def validate_follow(self, data):
+        if data['follower'] == data['following']:
+            raise serializers.ValidationError("자신을 팔로우할 수 없습니다.")
+        return data
+
 
 class PostSerializer(TaggitSerializer, serializers.ModelSerializer):
     # files = FileSerializer(many=True, read_only=True)

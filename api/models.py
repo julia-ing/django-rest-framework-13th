@@ -1,6 +1,22 @@
 from django.db import models
 from django.contrib.auth.models import User
 from taggit.managers import TaggableManager
+from django.core.validators import MinLengthValidator
+from django.core.exceptions import ValidationError
+import re
+
+# 모델에서 validator 작성 가능
+# MinLengthValidator 등 장고에서 기본적으로 제공하는 validator 있음
+
+textLength_validator = MinLengthValidator(3, "3글자 이상 입력해주세요.")
+
+
+def validate_phone(value):
+    phone_reg = r"/^\d{2,3}-\d{3,4}-\d{4}$/"
+    regex = re.compile(phone_reg)
+
+    if not regex.match(value):
+        raise ValidationError("0-0-0형식의 전화번호를 입력해주세요.")
 
 
 class Base(models.Model):
@@ -16,8 +32,8 @@ class Profile(Base):
     nickname = models.CharField(max_length=50, unique=True)
     avatar = models.ImageField(upload_to="image", default='image/default_img.jpg')
     website = models.URLField(null=True, blank=True)
-    bio = models.TextField(blank=True)
-    phone = models.CharField(max_length=50, null=True, blank=True)
+    bio = models.TextField(blank=True, validators=[textLength_validator])
+    phone = models.CharField(max_length=50, null=True, blank=True, validators=[validate_phone])
 
     def realname(self):
         return self.user.username
