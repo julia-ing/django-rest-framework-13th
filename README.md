@@ -484,3 +484,98 @@ class PostSerializer(serializers.ModelSerializer):
 CRUD가 간단하게 구현되는 걸 보고 신기했다. 
 이전 프로젝트들 진행할 때는 FBV만 사용해봤었는데 CBV도 알게 되어 좋았고, 특히 장고 DRF가 제공하는 APIView를 써보니 굉장히 편리했다.
 REST api에 대해 더 공부해야겠다.
+
+---
+---
+
+## 5주차 과제
+### ViewSet
+```python
+# views.py
+class PostViewSet(viewsets.ModelViewSet):
+    serializer_class = PostSerializer
+    queryset = Post.objects.all()
+
+# api/urls.py
+from rest_framework import routers
+from .views import PostViewSet
+
+router = routers.DefaultRouter()
+router.register(r'posts', PostViewSet)   # register()함으로써 두 개의 url 생성
+
+urlpatterns = router.urls
+```
+
+### Filter
+```python
+class PostFilter(FilterSet):
+    text = filters.CharFilter(field_name='text', lookup_expr='icontains')
+    tags = filters.CharFilter(method='filter_by_tags')
+
+    class Meta:
+        model = Post
+        fields = ['writer', 'text', 'tags', 'can_comment']
+
+    def filter_by_tags(self, queryset, tags, value): # 태그로 필터링
+        tags = Tag.objects.get(name__icontains=value)
+        filtered_posts = queryset.filter(tags=tags)
+        return filtered_posts
+
+# + ProfileFilter, 특정 유저를 팔로우하는 사람들을 보여주는 필터
+    def filter_by_following(self, queryset, following, value):
+        following = Follow.objects.get(following__nickname__iexact=value)
+        filtered_users = queryset.filter(following=following)
+        return filtered_users
+```
+
+![image](https://user-images.githubusercontent.com/77239220/118153769-39ccb600-b451-11eb-985a-3847e880c5cf.png)
+![image](https://user-images.githubusercontent.com/77239220/118153893-5cf76580-b451-11eb-8e7e-d822d4c12fc3.png)
+
+### Permission
+```python
+class IsWriterOrReadonly(permissions.BasePermission):
+    # 로그인(인증)한 유저는 데이터 조회, 포스팅 가능
+    def has_permission(self, request, view):
+        return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        # 자신의 정보만 수정, 삭제 가능
+        return obj.writer == request.user
+```
+
+![image](https://user-images.githubusercontent.com/77239220/118153126-7d72f000-b450-11eb-9d4b-6de0a5eca52f.png)
+https://testmanager.tistory.com/343 - 참고한 사이트
+![image](https://user-images.githubusercontent.com/77239220/118153386-cd51b700-b450-11eb-869e-b0b0f660b5e4.png)
+![image](https://user-images.githubusercontent.com/77239220/118153453-e2c6e100-b450-11eb-8286-be54095d07d1.png)
+id가 1인 유저 yewon으로 설정했을 때 자신의 정보만 수정 가능한 것을 확인
+
+### Validation
+```python
+# models.py
+from django.core.validators import MinLengthValidator
+from django.core.exceptions import ValidationError
+import re
+# 모델에서 validator 작성 가능
+# MinLengthValidator 등 장고에서 기본적으로 제공하는 validator 있음
+textLength_validator = MinLengthValidator(3, "3글자 이상 입력해주세요.")
+
+def validate_phone(value):
+    regex = re.compile('\d{2,3}-\d{3,4}-\d{4}')
+    if not regex.match(value):
+        raise ValidationError("0-0-0형식의 전화번호를 입력해주세요.")
+
+# Profile 모델 중 validation 과정을 넣을 bio와 phone 필드
+bio = models.TextField(blank=True, validators=[textLength_validator])
+phone = models.CharField(max_length=50, null=True, blank=True, validators=[validate_phone])
+    
+
+# serializers.py
+# serializer 내의 validation 동작 방식 아직 잘 이해 못함 - 더 공부해보기
+    def validate_follow(self, data):
+        if data['follower'] == data['following']:
+            raise serializers.ValidationError("자신을 팔로우할 수 없습니다.")
+        return data
+```
+![image](https://user-images.githubusercontent.com/77239220/118156234-16efd100-b454-11eb-9832-bf63549b0554.png)

@@ -12,8 +12,7 @@ textLength_validator = MinLengthValidator(3, "3글자 이상 입력해주세요.
 
 
 def validate_phone(value):
-    phone_reg = r"/^\d{2,3}-\d{3,4}-\d{4}$/"
-    regex = re.compile(phone_reg)
+    regex = re.compile('\d{2,3}-\d{3,4}-\d{4}')
 
     if not regex.match(value):
         raise ValidationError("0-0-0형식의 전화번호를 입력해주세요.")
