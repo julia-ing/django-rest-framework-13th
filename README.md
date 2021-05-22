@@ -579,3 +579,54 @@ phone = models.CharField(max_length=50, null=True, blank=True, validators=[valid
         return data
 ```
 ![image](https://user-images.githubusercontent.com/77239220/118156234-16efd100-b454-11eb-9832-bf63549b0554.png)
+
+## Sum-Up
+
+1. 장고 초기 설정
+```shell
+python -m venv venv
+venv\Scripts\activate.bat
+pip install django~=버전
+django-admin startproject config . # (.을 붙이면 같은 폴더가 두 개 생기지 않음)
+django-admin startapp api
+```
+시크릿 키를 json 파일로 따로 담아 git에 노출되지 않도록 하기
+
+2. settings.py
+- INSTALLED_APPS에 앱 추가, 'rest_framework', 'django_filters' 등 설치한 라이브러리들 추가
+- 개발 시 media 디렉토리로 이미지를 관리할 필요가 있다면 아래의 코드를 작성한다. 
+```python
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# config/urls.py
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+```
+
+3. models.py 
+- 모델 생성.수정 후 migrate , relation을 잘 생각하며 짜야 함
+- 모델에서 def(함수)로 지정해준 아이들을 admin 에서 list_display로 추가하면 쉽게 볼 수 있다. 
+  장고 orm 이용해 데이터 확인 시에는 ()까지 붙여서 데이터 불러오기.
+
+- 모델 생성 후에 view나 다른 코드를 짜기 전에 장고 orm연습을 많이 하면 좋을 것 같다. 
+    - 예시) Post.objects.all()[0].text / filter, get 등..
+
+4. views.py, urls.py 
+- 프론트와 협업 시 변수명과 url명을 잘 상의하고 맞춰야 할 것 같음
+
+5. filters, permissions, validations
+- 부가적인 기능들인 동시에 정말 중요한 기능들. 특히 플젝에서 jwt를 사용해보기 전에 많이 알아봐야겠다. 
+
+### 느낀 점
+
+1. 장고의 편리성
+    - 이미 구현되어 있는 기능이 정말 많아서 해커톤이나 뭔가를 빠르게 구현해야 할 때 좋은 것 같다. (django-rest-auth / allauth 등 로그인 회원가입 편리)
+    - viewset action으로 "users/<<int:pk>>/posts" 처럼 복잡한 api도 정말 쉽게 짤 수 있다.
+    - rest api를 짠 후 drf나 admin 에서 눈으로 데이터를 확인할 수 있다는 점
+    
+    
+2. 장고를 사용하면서 어려웠던 부분
+    - Migration 에러
+        - python manage.py makemigrations 앱이름
+        - fk로 연결되어 있는 모델에 데이터를 추가하지 않은 채 그 데이터에 대한 view 코드를 먼저 짜면 안됨
+
+너무 재미있었고 유익했던 스터디였습니다!!
