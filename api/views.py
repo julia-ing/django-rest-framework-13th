@@ -1,4 +1,5 @@
-from django.http import Http404
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import action
 from api.models import Profile, Post
 from api.serializers import ProfileSerializer, PostSerializer
 from rest_framework.views import APIView
@@ -25,6 +26,12 @@ class ProfileViewSet(viewsets.ModelViewSet):
     filterset_class = ProfileFilter
     permission_classes = (ProfileUpdatePermission,)
 
+    @action(detail=True, methods=['get'])
+    def posts(self, request, pk):
+        user = get_object_or_404(Profile, pk=pk)
+        posts = user.posts.all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
 
 # FBV
 # @csrf_exempt
@@ -93,4 +100,3 @@ class ProfileViewSet(viewsets.ModelViewSet):
 #         profile = self.get_object(pk)
 #         profile.delete()
 #         return Response(status=status.HTTP_204_NO_CONTENT)
-#

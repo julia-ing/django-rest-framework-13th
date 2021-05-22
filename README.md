@@ -612,6 +612,25 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 4. views.py, urls.py 
 - 프론트와 협업 시 변수명과 url명을 잘 상의하고 맞춰야 할 것 같음
+- 추가로 @action 데코레이터 연습을 해보았다
+
+```python
+class ProfileViewSet(viewsets.ModelViewSet):
+    serializer_class = ProfileSerializer
+    queryset = Profile.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ProfileFilter
+    permission_classes = (ProfileUpdatePermission,)
+
+    @action(detail=True, methods=['get'])
+    def posts(self, request, pk):
+        user = get_object_or_404(Profile, pk=pk)
+        posts = user.posts.all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+```
+
+![image](https://user-images.githubusercontent.com/77239220/119231267-f82bc180-bb5a-11eb-857b-76206bda53a3.png)
 
 5. filters, permissions, validations
 - 부가적인 기능들인 동시에 정말 중요한 기능들. 특히 플젝에서 jwt를 사용해보기 전에 많이 알아봐야겠다. 
@@ -629,4 +648,6 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
         - python manage.py makemigrations 앱이름
         - fk로 연결되어 있는 모델에 데이터를 추가하지 않은 채 그 데이터에 대한 view 코드를 먼저 짜면 안됨
 
-너무 재미있었고 유익했던 스터디였습니다!!
+너무 재미있었고 유익했던 스터디였습니다!! 실제로 프론트와 협업 연습해보면서 경험 쌓아볼 겸
+장고로 해커톤에 나가보았는데, 이번 스터디를 하면서 짰던 코드가 인스타그램 클론이다보니 커뮤니티 부분 개발에 있어서 많은 참고가 되었습니다. 
+앞으로도 커뮤니티, sns 관련 개발을 할 때 이번 스터디 때 공부한 내용들을 바탕으로 많이 빌드업 해나가면 좋을 것 같습니다. 
