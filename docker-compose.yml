@@ -1,34 +1,42 @@
-version: '3'
+version: "3"
 services:
-  web:
-    container_name: web
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
-    environment:
-      DJANGO_SETTINGS_MODULE: config.settings.prod
-    volumes:
-      - static:/home/app/web/static
-      - media:/home/app/web/media
-    expose:
-      - 8001
-    entrypoint:
-      - sh
-      - config/docker/entrypoint.prod.sh
-
   nginx:
-    image: nginx:latest
-    build: ./config/nginx
+#    image: nginx:latest
+    build:
+      ./config/nginx
     container_name: nginx
-    volumes:
-      - static:/home/app/web/static
-      - media:/home/app/web/media
     ports:
-      - "80:80/tcp"
+      - "81:81"
+    volumes:
+      - ../volume/nginx:/etc/nginx/conf.d
+      - ../volume/static:/staticfiles
     depends_on:
       - web
-
-volumes:
-  static:
-  media:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: web
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ../volume/static:/usr/src/app/staticfiles
+    expose:
+      - "8000"
+    depends_on:
+      - db
+  db:
+    image: mysql
+    container_name: mysql
+    expose:
+      - "3306"
+    environment:
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_PASSWORD: "${DB_USER_PASSWORD}"
+    restart: always
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+    - ../db/data:/var/lib/mysql
+    - ../db/data/conf.d:/etc/mysql/conf.d
