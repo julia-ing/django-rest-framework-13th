@@ -26,7 +26,7 @@ with open(os.path.join(BASE_DIR, 'secrets.json'), 'rb') as secret_file:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition

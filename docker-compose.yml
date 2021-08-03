@@ -1,0 +1,34 @@
+version: '3'
+services:
+  web:
+    container_name: web
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+    volumes:
+      - static:/home/app/web/static
+      - media:/home/app/web/media
+    expose:
+      - 8001
+    entrypoint:
+      - sh
+      - config/docker/entrypoint.prod.sh
+
+  nginx:
+    image: nginx:latest
+    build: ./config/nginx
+    container_name: nginx
+    volumes:
+      - static:/home/app/web/static
+      - media:/home/app/web/media
+    ports:
+      - "80:80/tcp"
+    depends_on:
+      - web
+
+volumes:
+  static:
+  media:

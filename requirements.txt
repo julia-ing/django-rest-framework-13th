@@ -5,3 +5,6 @@ mysqlclient @ file:///C:/Users/%EC%B5%9C%EC%98%88%EC%9B%90/Downloads/mysqlclient
 Pillow==8.1.2
 pytz==2021.1
 sqlparse==0.4.1
+djangorestframework~=3.12.4
+django-filter~=2.4.0
+environ~=1.0
